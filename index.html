@@ -56,6 +56,39 @@
         <p id="view-lead" class="lead"></p>
       </div>
 
+      <section id="myphrase-view" class="myphrase" hidden>
+        <button id="myphrase-add" class="btn btn-play btn-wide" type="button">＋ 新しいフレーズを追加</button>
+
+        <form id="myphrase-form" class="phrase-card hotel-form" hidden>
+          <p class="form-note">
+            入力した内容は<b>このスマホの中だけ</b>に保存されます。インターネットには送られず、ほかの人には見えません。
+          </p>
+          <label class="field">
+            <span class="field-label">日本語（意味）<span class="req">必須</span></span>
+            <input name="ja" type="text" autocomplete="off" required placeholder="例：写真を撮ってもいいですか？" />
+          </label>
+          <label class="field">
+            <span class="field-label">中国語（繁体字）<span class="req">必須</span></span>
+            <textarea name="zh" rows="2" lang="zh-Hant-TW" autocomplete="off" required placeholder="例：可以拍照嗎？"></textarea>
+            <span class="field-help">
+              翻訳アプリ（Google翻訳など）で「中国語（繁体）」に訳し、長押しでコピーして貼り付けると便利です。
+            </span>
+          </label>
+          <label class="field">
+            <span class="field-label">拼音（分からなければ空欄でOK）</span>
+            <input name="pinyin" type="text" autocomplete="off" placeholder="例：Kěyǐ pāizhào ma?" />
+          </label>
+          <label class="field">
+            <span class="field-label">カタカナ読み（分からなければ空欄でOK）</span>
+            <input name="kana" type="text" autocomplete="off" placeholder="例：クーイー パイジャオ マ" />
+          </label>
+          <div class="form-actions">
+            <button class="btn btn-play" type="submit">保存する</button>
+            <button id="myphrase-cancel" class="btn btn-close" type="button">やめる</button>
+          </div>
+        </form>
+      </section>
+
       <section id="phrase-list" class="phrase-list" aria-live="polite"></section>
 
       <section id="myhotel-view" class="myhotel" hidden>

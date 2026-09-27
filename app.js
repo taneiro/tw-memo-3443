@@ -19,17 +19,24 @@ const myHotelCard = document.getElementById("myhotel-card");
 const myHotelForm = document.getElementById("myhotel-form");
 const hotelCancel = document.getElementById("hotel-cancel");
 const offlineStatus = document.getElementById("offline-status");
+const myPhraseView = document.getElementById("myphrase-view");
+const myPhraseAdd = document.getElementById("myphrase-add");
+const myPhraseForm = document.getElementById("myphrase-form");
+const myPhraseCancel = document.getElementById("myphrase-cancel");
 
 const NO_TAIWAN_VOICE_MESSAGE = "台湾華語の音声がこの端末で利用できません";
 const TAIWAN_LANG = "zh-TW";
 const FAVORITES_ID = "favorites";
 const MYHOTEL_ID = "myhotel";
+const MYPHRASES_ID = "myphrases";
+const MY_SCENE = { id: MYPHRASES_ID, title: "マイフレーズ", icon: "✏️" };
 
 const STORAGE_KEYS = {
   favorites: "twPhrases.favorites",
   scene: "twPhrases.scene",
   largeText: "twPhrases.largeText",
   myHotel: "twPhrases.myHotel",
+  myPhrases: "twPhrases.myPhrases",
 };
 
 // タクシーでホテルに行くときに見せる言葉
@@ -74,9 +81,21 @@ const state = {
   myHotel: loadStored(STORAGE_KEYS.myHotel, null),
   editingHotel: false,
   confirmDelete: false,
+  myPhrases: loadStoredList(STORAGE_KEYS.myPhrases).filter((item) => item && item.id && item.zh),
+  phraseFormOpen: false,
+  editingPhraseId: null,
+  confirmDeletePhraseId: null,
 };
 
-if (![FAVORITES_ID, MYHOTEL_ID].includes(state.view) && !SCENES.some((scene) => scene.id === state.view)) {
+function loadStoredList(key) {
+  const value = loadStored(key, []);
+  return Array.isArray(value) ? value : [];
+}
+
+if (
+  ![FAVORITES_ID, MYHOTEL_ID, MYPHRASES_ID].includes(state.view) &&
+  !SCENES.some((scene) => scene.id === state.view)
+) {
   state.view = SCENES[0].id;
 }
 
@@ -105,7 +124,28 @@ function searchPhrases(query) {
     .map(normalizeForSearch)
     .filter(Boolean);
   if (!terms.length) return [];
-  return ALL_PHRASES.filter((phrase) => terms.every((term) => phrase.searchText.includes(term)));
+  return [...myPhraseEntries(), ...ALL_PHRASES].filter((phrase) =>
+    terms.every((term) => phrase.searchText.includes(term))
+  );
+}
+
+// 自分で追加したフレーズを、ほかのフレーズと同じ形にそろえます
+function myPhraseEntries() {
+  return state.myPhrases.map((item) => ({
+    zh: item.zh,
+    pinyin: item.pinyin || "",
+    kana: item.kana || "",
+    ja: item.ja || "",
+    id: item.id,
+    key: `my:${item.id}`,
+    scene: MY_SCENE,
+    mine: true,
+    searchText: normalizeForSearch([item.zh, item.pinyin, item.kana, item.ja, MY_SCENE.title].join(" ")),
+  }));
+}
+
+function findPhrase(key) {
+  return PHRASE_BY_KEY.get(key) || myPhraseEntries().find((phrase) => phrase.key === key);
 }
 
 /* ---------- 台湾華語の音声 ---------- */
@@ -266,6 +306,7 @@ function renderTabs() {
   const tabs = [
     { id: FAVORITES_ID, icon: "★", title: "お気に入り", count: state.favorites.size },
     { id: MYHOTEL_ID, icon: "📍", title: "マイホテル" },
+    { id: MYPHRASES_ID, icon: MY_SCENE.icon, title: MY_SCENE.title, count: state.myPhrases.length },
     ...SCENES.map((scene) => ({ id: scene.id, icon: scene.icon, title: scene.title })),
   ];
   const searching = state.query.trim() !== "";
@@ -289,24 +330,104 @@ function phraseCardHtml(phrase, showSceneTag) {
   const tag = showSceneTag
     ? `<p class="scene-tag"><span aria-hidden="true">${phrase.scene.icon}</span> ${escapeHtml(phrase.scene.title)}</p>`
     : "";
+  const rows = [
+    phrase.pinyin ? `<div><dt>拼音</dt><dd>${escapeHtml(phrase.pinyin)}</dd></div>` : "",
+    phrase.kana ? `<div><dt>カタカナ</dt><dd>${escapeHtml(phrase.kana)}</dd></div>` : "",
+  ].join("");
+  const confirming = phrase.mine && state.confirmDeletePhraseId === phrase.id;
+  // 自分で追加したフレーズには ☆ の代わりに「書き換える」「消す」を付けます
+  const extra = phrase.mine
+    ? `<div class="actions actions-2">
+        <button class="btn btn-close" type="button" data-action="edit" data-key="${key}">✏️ 書き換える</button>
+        <button class="btn btn-delete${confirming ? " is-confirm" : ""}" type="button" data-action="delete" data-key="${key}">
+          ${confirming ? "本当に消す？（もう一度押す）" : "🗑️ 消す"}
+        </button>
+      </div>`
+    : "";
   return `
     <article class="phrase-card">
       ${tag}
-      <p class="ja">${escapeHtml(phrase.ja)}</p>
+      ${phrase.ja ? `<p class="ja">${escapeHtml(phrase.ja)}</p>` : ""}
       <p class="zh" lang="zh-Hant-TW">${escapeHtml(phrase.zh)}</p>
-      <dl class="meta">
-        <div><dt>拼音</dt><dd>${escapeHtml(phrase.pinyin)}</dd></div>
-        <div><dt>カタカナ</dt><dd>${escapeHtml(phrase.kana)}</dd></div>
-      </dl>
-      <div class="actions">
+      ${rows ? `<dl class="meta">${rows}</dl>` : ""}
+      <div class="actions${phrase.mine ? " actions-2" : ""}">
         <button class="btn btn-play" type="button" data-action="play" data-key="${key}" aria-pressed="false"
           aria-label="${escapeHtml(phrase.zh)} を台湾華語で発音">🔊 発音</button>
         <button class="btn btn-show" type="button" data-action="show" data-key="${key}"
           aria-label="${escapeHtml(phrase.zh)} を大きく表示">見せる</button>
-        <button class="btn btn-fav" type="button" data-action="fav" data-key="${key}" aria-pressed="${isFav}"
-          aria-label="お気に入り">${isFav ? "★" : "☆"}</button>
+        ${
+          phrase.mine
+            ? ""
+            : `<button class="btn btn-fav" type="button" data-action="fav" data-key="${key}" aria-pressed="${isFav}"
+          aria-label="お気に入り">${isFav ? "★" : "☆"}</button>`
+        }
       </div>
+      ${extra}
     </article>`;
+}
+
+/* ---------- マイフレーズ ---------- */
+
+function openPhraseForm(entry) {
+  state.phraseFormOpen = true;
+  state.editingPhraseId = entry ? entry.id : null;
+  myPhraseForm.elements.ja.value = entry?.ja || "";
+  myPhraseForm.elements.zh.value = entry?.zh || "";
+  myPhraseForm.elements.pinyin.value = entry?.pinyin || "";
+  myPhraseForm.elements.kana.value = entry?.kana || "";
+  renderPhraseForm();
+  myPhraseForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  myPhraseForm.elements.ja.focus({ preventScroll: true });
+}
+
+function closePhraseForm() {
+  state.phraseFormOpen = false;
+  state.editingPhraseId = null;
+  renderPhraseForm();
+}
+
+function renderPhraseForm() {
+  myPhraseForm.hidden = !state.phraseFormOpen;
+  myPhraseAdd.hidden = state.phraseFormOpen;
+}
+
+function saveMyPhrases() {
+  saveStored(STORAGE_KEYS.myPhrases, state.myPhrases);
+}
+
+myPhraseAdd.addEventListener("click", () => openPhraseForm(null));
+myPhraseCancel.addEventListener("click", closePhraseForm);
+
+myPhraseForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = (name) => myPhraseForm.elements[name].value.trim();
+  if (!value("ja")) return myPhraseForm.elements.ja.focus();
+  if (!value("zh")) return myPhraseForm.elements.zh.focus();
+
+  const item = { ja: value("ja"), zh: value("zh"), pinyin: value("pinyin"), kana: value("kana") };
+  const index = state.myPhrases.findIndex((phrase) => phrase.id === state.editingPhraseId);
+  if (index >= 0) {
+    state.myPhrases[index] = { ...state.myPhrases[index], ...item };
+  } else {
+    item.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    state.myPhrases.unshift(item); // 新しいものを上に
+  }
+  saveMyPhrases();
+  closePhraseForm();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+function deleteMyPhrase(phrase) {
+  if (state.confirmDeletePhraseId !== phrase.id) {
+    state.confirmDeletePhraseId = phrase.id; // 誤って消さないよう、2回押したときだけ消す
+    render();
+    return;
+  }
+  state.confirmDeletePhraseId = null;
+  state.myPhrases = state.myPhrases.filter((item) => item.id !== phrase.id);
+  saveMyPhrases();
+  render();
 }
 
 /* ---------- マイホテル ---------- */
@@ -418,9 +539,12 @@ function render() {
   let phrases;
   let showSceneTag;
   const showMyHotel = !query && state.view === MYHOTEL_ID;
+  const showMyPhrases = !query && state.view === MYPHRASES_ID;
 
   phraseList.hidden = showMyHotel;
   myHotelView.hidden = !showMyHotel;
+  myPhraseView.hidden = !showMyPhrases;
+  if (!showMyPhrases && state.phraseFormOpen) closePhraseForm();
 
   if (showMyHotel) {
     viewTitle.textContent = "📍 マイホテル";
@@ -446,6 +570,14 @@ function render() {
     viewLead.textContent = phrases.length
       ? "よく使うフレーズをまとめています。☆ をもう一度押すと外せます。"
       : "まだありません。各フレーズの ☆ を押すと、ここに集まります。";
+  } else if (showMyPhrases) {
+    phrases = myPhraseEntries();
+    showSceneTag = false;
+    viewTitle.textContent = `${MY_SCENE.icon} ${MY_SCENE.title}`;
+    viewLead.textContent = phrases.length
+      ? "自分で追加したフレーズです。このスマホの中だけに保存されています。"
+      : "まだありません。「＋ 新しいフレーズを追加」から、自分の使いたい言葉を登録できます。";
+    renderPhraseForm();
   } else {
     const scene = SCENES.find((item) => item.id === state.view);
     phrases = ALL_PHRASES.filter((phrase) => phrase.scene.id === scene.id);
@@ -532,16 +664,32 @@ sceneTabs.addEventListener("click", (event) => {
 });
 
 phraseList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-action]");
+  let button = event.target.closest("[data-action]");
   if (!button) return;
-  const phrase = PHRASE_BY_KEY.get(button.dataset.key);
+  const phrase = findPhrase(button.dataset.key);
   if (!phrase) return;
+  const action = button.dataset.action;
 
-  if (button.dataset.action === "play") speakTaiwanMandarin(phrase.zh, button);
-  else if (button.dataset.action === "show")
-    openOverlay({ zh: phrase.zh, sub: phrase.pinyin, ja: phrase.ja, speech: phrase.zh });
-  else if (button.dataset.action === "fav") toggleFavorite(phrase.key, button);
+  if (action !== "delete" && state.confirmDeletePhraseId) {
+    state.confirmDeletePhraseId = null;
+    render();
+    if (action === "edit") return openPhraseFormFor(phrase);
+    // 再描画でボタンが作り直されるので、押したボタンを探し直す
+    const again = phraseList.querySelector(`[data-action="${action}"][data-key="${CSS.escape(phrase.key)}"]`);
+    if (again) button = again;
+  }
+
+  if (action === "play") speakTaiwanMandarin(phrase.zh, button);
+  else if (action === "show") openOverlay({ zh: phrase.zh, sub: phrase.pinyin, ja: phrase.ja, speech: phrase.zh });
+  else if (action === "fav") toggleFavorite(phrase.key, button);
+  else if (action === "edit") openPhraseFormFor(phrase);
+  else if (action === "delete") deleteMyPhrase(phrase);
 });
+
+function openPhraseFormFor(phrase) {
+  if (state.view !== MYPHRASES_ID || state.query.trim()) setView(MYPHRASES_ID);
+  openPhraseForm(phrase);
+}
 
 searchInput.addEventListener("input", () => {
   state.query = searchInput.value;

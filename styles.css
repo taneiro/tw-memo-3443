@@ -474,6 +474,19 @@ h1 {
   color: #7a3128;
 }
 
+/* ---------- マイフレーズ ---------- */
+
+.myphrase {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.btn-wide {
+  width: 100%;
+  font-size: 1.05rem;
+}
+
 /* ---------- マイホテル ---------- */
 
 .hotel-pre {

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f6b5c" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- 検索エンジン（Googleなど）に載せないための設定 -->
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- スマホのホーム画面に追加してアプリのように使うための設定 -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="台湾華語" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>台湾旅行中国語</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="title-row">
+          <div class="topbar-text">
+            <p class="eyebrow">台湾旅行</p>
+            <h1>中国語フレーズ</h1>
+          </div>
+          <button id="text-size-btn" class="text-size-btn" type="button" aria-pressed="false">
+            文字 <span aria-hidden="true">大</span>
+          </button>
+        </div>
+
+        <form class="search" role="search" id="search-form">
+          <label for="search-input" class="visually-hidden">フレーズを検索</label>
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            id="search-input"
+            type="search"
+            inputmode="search"
+            enterkeyhint="search"
+            autocomplete="off"
+            placeholder="検索（例：トイレ、謝謝、xie）"
+          />
+          <button id="search-clear" class="search-clear" type="button" aria-label="検索を消す" hidden>×</button>
+        </form>
+
+        <nav class="scene-tabs" id="scene-tabs" aria-label="場面の切り替え"></nav>
+      </div>
+    </header>
+
+    <main class="app">
+      <div id="voice-banner" class="voice-banner" hidden role="status"></div>
+
+      <div class="view-head">
+        <h2 id="view-title" class="view-title"></h2>
+        <p id="view-lead" class="lead"></p>
+      </div>
+
+      <section id="phrase-list" class="phrase-list" aria-live="polite"></section>
+
+      <section id="myhotel-view" class="myhotel" hidden>
+        <div id="myhotel-card" class="phrase-card hotel-card" hidden></div>
+
+        <form id="myhotel-form" class="phrase-card hotel-form" hidden>
+          <p class="form-note">
+            入力した内容は<b>このスマホの中だけ</b>に保存されます。インターネットには送られず、ほかの人には見えません。
+          </p>
+          <label class="field">
+            <span class="field-label">ホテル名（中国語・繁体字）<span class="req">必須</span></span>
+            <input id="hotel-zh" name="zh" type="text" lang="zh-Hant-TW" autocomplete="off" required
+              placeholder="例：台北〇〇飯店" />
+            <span class="field-help">予約サイトやGoogleマップを中国語表示にしてコピーし、貼り付けるのが確実です。</span>
+          </label>
+          <label class="field">
+            <span class="field-label">住所（中国語・繁体字）</span>
+            <textarea id="hotel-address" name="address" rows="2" lang="zh-Hant-TW" autocomplete="off"
+              placeholder="例：台北市中正區〇〇路1號"></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">電話番号</span>
+            <input id="hotel-phone" name="phone" type="tel" autocomplete="off" placeholder="例：02-1234-5678" />
+          </label>
+          <label class="field">
+            <span class="field-label">自分用メモ（日本語名など）</span>
+            <input id="hotel-memo" name="memo" type="text" autocomplete="off" placeholder="例：〇〇ホテル台北" />
+          </label>
+          <div class="form-actions">
+            <button class="btn btn-play" type="submit">保存する</button>
+            <button id="hotel-cancel" class="btn btn-close" type="button">やめる</button>
+          </div>
+        </form>
+      </section>
+
+      <p class="hint">
+        「発音」は画面の繁体字を台湾華語の音声で読み上げます。カタカナは読み方の目安で、音声には使いません。
+        「見せる」を押すと大きな文字で表示されるので、お店の人にそのまま画面を見せられます。
+      </p>
+      <p id="offline-status" class="offline-status" role="status"></p>
+    </main>
+
+    <div id="show-overlay" class="show-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="show-zh">
+      <div class="show-inner">
+        <p id="show-pre" class="show-pre" lang="zh-Hant-TW" hidden></p>
+        <p id="show-zh" class="show-zh" lang="zh-Hant-TW"></p>
+        <p id="show-pinyin" class="show-pinyin"></p>
+        <p id="show-ja" class="show-ja"></p>
+        <div class="show-actions">
+          <button id="show-play" class="btn btn-play" type="button">🔊 発音</button>
+          <button id="show-close" class="btn btn-close" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="phrases.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

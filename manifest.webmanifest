@@ -1,0 +1,15 @@
+{
+  "name": "台湾旅行 中国語フレーズ",
+  "short_name": "台湾華語",
+  "description": "台湾旅行で使える中国語（台湾華語）フレーズ集",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#0f6b5c",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -205,6 +205,14 @@ h1 {
   display: none;
 }
 
+/* マウスで操作するPCでは横にずらせないので、タブを折り返して全部見せます */
+@media (hover: hover) and (pointer: fine) {
+  .scene-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
 .tab {
   flex: 0 0 auto;
   display: inline-flex;
@@ -396,6 +404,17 @@ h1 {
   font-size: 1.05rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+/* メニューの説明（どんな食べ物・飲み物か） */
+.note {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--gold-soft);
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .actions {

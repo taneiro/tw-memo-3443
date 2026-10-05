@@ -3,7 +3,7 @@
 // 次に開いたときは保存したファイルをすぐに表示し、電波があれば裏で新しい内容に更新します
 // （フレーズを書き換えたときは、電波のある場所で2回開くと新しい内容になります）。
 
-const CACHE_NAME = "tw-phrases-v1";
+const CACHE_NAME = "tw-phrases-v2";
 const APP_FILES = [
   "./",
   "./index.html",

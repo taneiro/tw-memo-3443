@@ -114,7 +114,7 @@ function normalizeForSearch(text) {
 
 for (const phrase of ALL_PHRASES) {
   phrase.searchText = normalizeForSearch(
-    [phrase.zh, phrase.pinyin, phrase.kana, phrase.ja, phrase.scene.title].join(" ")
+    [phrase.zh, phrase.pinyin, phrase.kana, phrase.ja, phrase.note, phrase.scene.title].join(" ")
   );
 }
 
@@ -350,6 +350,7 @@ function phraseCardHtml(phrase, showSceneTag) {
       ${phrase.ja ? `<p class="ja">${escapeHtml(phrase.ja)}</p>` : ""}
       <p class="zh" lang="zh-Hant-TW">${escapeHtml(phrase.zh)}</p>
       ${rows ? `<dl class="meta">${rows}</dl>` : ""}
+      ${phrase.note ? `<p class="note">${escapeHtml(phrase.note)}</p>` : ""}
       <div class="actions${phrase.mine ? " actions-2" : ""}">
         <button class="btn btn-play" type="button" data-action="play" data-key="${key}" aria-pressed="false"
           aria-label="${escapeHtml(phrase.zh)} を台湾華語で発音">🔊 発音</button>

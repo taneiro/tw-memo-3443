@@ -37,12 +37,32 @@ const STORAGE_KEYS = {
   largeText: "twPhrases.largeText",
   myHotel: "twPhrases.myHotel",
   myPhrases: "twPhrases.myPhrases",
+  hotelPreset: "twPhrases.hotelPreset",
 };
 
 // タクシーでホテルに行くときに見せる言葉
 const TO_HOTEL = { zh: "請到這家飯店", pinyin: "Qǐng dào zhè jiā fàndiàn", ja: "このホテルまでお願いします" };
 
+// マイホテルの初期値です。HOTEL_PRESET_ID を変えると、各端末で一度だけこの内容に置き換わります
+// （置き換えたあとに書き換えたり消したりした内容は、そのまま残ります）。
+const HOTEL_PRESET_ID = "caesar-park-taipei";
+const DEFAULT_HOTEL = {
+  zh: "台北凱撒大飯店",
+  address: "台北市中正區忠孝西路一段38號",
+  phone: "02-2311-5151",
+  memo: "シーザーパーク台北（台北駅の向かい）",
+};
+
 /* ---------- 保存（ブラウザ内の記憶。使えない環境でもアプリは動きます） ---------- */
+
+function loadMyHotel() {
+  if (loadStored(STORAGE_KEYS.hotelPreset, null) !== HOTEL_PRESET_ID) {
+    saveStored(STORAGE_KEYS.myHotel, DEFAULT_HOTEL);
+    saveStored(STORAGE_KEYS.hotelPreset, HOTEL_PRESET_ID);
+    return DEFAULT_HOTEL;
+  }
+  return loadStored(STORAGE_KEYS.myHotel, DEFAULT_HOTEL);
+}
 
 function loadStored(key, fallback) {
   try {
@@ -78,7 +98,7 @@ const state = {
   query: "",
   favorites: new Set(loadStored(STORAGE_KEYS.favorites, []).filter((key) => PHRASE_BY_KEY.has(key))),
   overlaySpeech: null,
-  myHotel: loadStored(STORAGE_KEYS.myHotel, null),
+  myHotel: loadMyHotel(),
   editingHotel: false,
   confirmDelete: false,
   myPhrases: loadStoredList(STORAGE_KEYS.myPhrases).filter((item) => item && item.id && item.zh),
@@ -505,11 +525,7 @@ myHotelCard.addEventListener("click", (event) => {
     }
     state.confirmDelete = false;
     state.myHotel = null;
-    try {
-      window.localStorage.removeItem(STORAGE_KEYS.myHotel);
-    } catch {
-      // 保存できない環境では何もしない
-    }
+    saveStored(STORAGE_KEYS.myHotel, null); // 消したことを記録して、初期値に戻らないようにする
     renderMyHotel();
   }
 });

@@ -773,9 +773,24 @@ function setupOffline() {
     offlineStatus.classList.add("is-warn");
     return;
   }
+  // 新しい内容が届いたら、自動で読み込み直して最新の画面にします（初回の保存時は除く）
+  let reloading = false;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    location.reload();
+  });
+
   navigator.serviceWorker
-    .register("sw.js")
-    .then(() => navigator.serviceWorker.ready)
+    .register("sw.js", { updateViaCache: "none" })
+    .then((registration) => {
+      // ホーム画面のアプリは閉じても裏で開いたままのことがあるので、画面に戻ってきたときにも更新を確認します
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") registration.update().catch(() => {});
+      });
+      return navigator.serviceWorker.ready;
+    })
     .then(() => {
       offlineStatus.textContent = "✅ この端末に保存済みです。電波がなくても使えます。";
       offlineStatus.classList.add("is-ok");

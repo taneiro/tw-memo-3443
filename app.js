@@ -93,10 +93,17 @@ const ALL_PHRASES = SCENES.flatMap((scene) =>
 );
 const PHRASE_BY_KEY = new Map(ALL_PHRASES.map((phrase) => [phrase.key, phrase]));
 
+// 「注文」タブへ移したフレーズは、前の場面IDのお気に入りを新しいキーに読み替えて引き継ぎます
+function toCurrentKey(key) {
+  if (PHRASE_BY_KEY.has(key)) return key;
+  const zh = String(key).slice(String(key).indexOf(":") + 1);
+  return PHRASE_BY_KEY.has(`order:${zh}`) ? `order:${zh}` : key;
+}
+
 const state = {
   view: loadStored(STORAGE_KEYS.scene, SCENES[0].id),
   query: "",
-  favorites: new Set(loadStored(STORAGE_KEYS.favorites, []).filter((key) => PHRASE_BY_KEY.has(key))),
+  favorites: new Set(loadStored(STORAGE_KEYS.favorites, []).map(toCurrentKey).filter((key) => PHRASE_BY_KEY.has(key))),
   overlaySpeech: null,
   myHotel: loadMyHotel(),
   editingHotel: false,
